@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS concession_products (
     name VARCHAR(120) NOT NULL,
     description VARCHAR(255) NOT NULL,
     price_amount DECIMAL(10, 2) NOT NULL,
-    icon VARCHAR(20) DEFAULT NULL,
+    icon VARCHAR(50) DEFAULT NULL,
     badge VARCHAR(40) DEFAULT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     sort_order INT UNSIGNED NOT NULL DEFAULT 0,
@@ -24,12 +24,12 @@ CREATE TABLE IF NOT EXISTS concession_products (
 
 INSERT INTO concession_products (id, name, description, price_amount, icon, badge, is_active, sort_order)
 VALUES
-    (1, 'Combo Clasico', 'Cabritas medianas + bebida.', 4500.00, '🍿🥤', 'Popular', 1, 10),
-    (2, 'Combo Doble', 'Cabritas grandes + 2 bebidas.', 7900.00, '🍿🥤🥤', 'Para compartir', 1, 20),
-    (3, 'Nachos Cine', 'Nachos + salsa.', 3800.00, '🌭', 'Snack', 1, 30),
-    (4, 'Dulce Mix', 'Chocolates + gomitas.', 3200.00, '🍫', 'Dulce', 1, 40),
-    (5, 'Bebida individual', 'Bebida mediana.', 1500.00, '🥤', 'Bebida', 1, 50),
-    (6, 'Cabritas grandes', 'Cabritas grandes.', 3000.00, '🍿', 'Cabritas', 1, 60)
+    (1, 'Combo Clasico', 'Cabritas medianas + bebida.', 4500.00, 'combo_clasico.jpg', 'Popular', 1, 10),
+    (2, 'Combo Doble', 'Cabritas grandes + 2 bebidas.', 7900.00, 'combo_doble.jpg', 'Para compartir', 1, 20),
+    (3, 'Nachos Cine', 'Nachos + salsa.', 3800.00, 'nachos.jpg', 'Snack', 1, 30),
+    (4, 'Dulce Mix', 'Chocolates + gomitas.', 3200.00, 'dulces.jpg', 'Dulce', 1, 40),
+    (5, 'Bebida individual', 'Bebida mediana.', 1500.00, 'bebida.jpg', 'Bebida', 1, 50),
+    (6, 'Cabritas grandes', 'Cabritas grandes.', 3000.00, 'cabritas.jpg', 'Cabritas', 1, 60)
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     description = VALUES(description),

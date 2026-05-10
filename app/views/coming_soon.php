@@ -183,14 +183,16 @@ $isMemberDemoPage = $memberDemo !== [];
                         <?php else: ?>
                             <div class="confiteria-catalog-grid">
                                 <?php foreach ($catalogItems as $catalogItem): ?>
-                                    <?php $catalogIcon = trim((string) ($catalogItem['icon'] ?? '')); ?>
-                                    <article class="confiteria-card">
-                                        <div class="confiteria-card-visual">
-                                            <?php if (($catalogItem['label'] ?? '') !== ''): ?>
-                                                <span class="confiteria-card-label"><?= e($catalogItem['label']) ?></span>
-                                            <?php endif; ?>
-                                            <span class="confiteria-card-icon" aria-hidden="true"><?= e($catalogIcon !== '' ? $catalogIcon : '🍿') ?></span>
+                                    <?php $catalogImage = trim((string) ($catalogItem['icon'] ?? 'default.jpg')); ?>
+                                        <article class="confiteria-card">
+                                            <div class="confiteria-card-visual">
+                                    <?php if (($catalogItem['label'] ?? '') !== ''): ?>
+                                        <span class="confiteria-card-label"><?= e($catalogItem['label']) ?></span>
+                                    <?php endif; ?>
+                                            <img src="assets/img/<?= e($catalogImage) ?>" alt="<?= e($catalogItem['name'] ?? 'Producto') ?>" class="confiteria-card-icon">
                                         </div>
+                                            
+                                       
                                         <div class="confiteria-card-copy">
                                             <h3><?= e($catalogItem['name'] ?? '') ?></h3>
                                             <p><?= e($catalogItem['description'] ?? '') ?></p>

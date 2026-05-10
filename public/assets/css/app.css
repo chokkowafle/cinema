@@ -4285,15 +4285,11 @@ p {
 }
 
 .confiteria-card-visual {
-    position: relative;
-    display: flex;
-    min-height: 0;
-    align-items: center;
-    justify-content: center;
-    padding: 28px 18px;
-    background:
-        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.24), transparent 34%),
-        linear-gradient(145deg, #f9a045 0%, #df2444 55%, #9f1830 100%);
+    background: transparent;
+    padding: 0;
+    overflow: hidden; 
+    height: 160px; 
+    position: relative; 
 }
 
 .confiteria-card-label {
@@ -4315,10 +4311,11 @@ p {
 
 .confiteria-card-icon {
     display: block;
-    font-size: 4.6rem;
-    line-height: 1;
-    text-align: center;
-    text-shadow: 0 9px 18px rgba(0, 0, 0, 0.28);
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    object-position: center;
+    margin: 0;
 }
 
 .confiteria-card-copy {
