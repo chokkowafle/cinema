@@ -5739,11 +5739,11 @@ p {
         padding: 24px 16px 48px;
     }
 
-    .auth-logo {
-        width: 188px;
-        height: 132px;
-        margin-bottom: 10px;
-    }
+   .auth-logo {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
 
     .logo-film {
         height: 58px;
@@ -5809,12 +5809,9 @@ p {
     }
 
     .cinema-brand {
-        grid-column: 1;
-        grid-row: 1;
-        width: 76px;
-        height: 56px;
-        flex-basis: auto;
-    }
+    display: flex;
+    align-items: center;
+}
 
     .brand-person {
         top: 3px;

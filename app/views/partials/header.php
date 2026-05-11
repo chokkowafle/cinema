@@ -66,11 +66,10 @@ if ($isAuthenticated) {
 ?>
 <header class="topbar cinema-topbar">
     <a class="brand cinema-brand" href="index.php?page=cartelera" aria-label="ES Cine cartelera">
-        <span class="brand-person" aria-hidden="true"></span>
-        <span class="brand-film"><span>ES</span> <em>Cine</em></span>
-    </a>
+    <img src="assets/img/logoblancoOF.png" alt="Logo Cine" style="max-height: 120px; width: auto; border-radius: 12px;">
+</a>
 
-    <nav class="topnav cinema-nav" aria-label="Navegacion principal">
+    <nav class="topnav cinema-nav" aria-label="Navegacion principal"> 
         <?php foreach ($navItems as $item): ?>
             <?php
             $isActive = $activeNav !== '' && $activeNav === $item['key'];

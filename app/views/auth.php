@@ -15,9 +15,8 @@ $buttonLabel = $isRegister ? 'REGISTRAR' : 'INGRESAR';
 </head>
 <body class="auth-screen">
     <main class="auth-layout" aria-label="Autenticacion">
-        <div class="auth-logo" aria-label="ES Cine">
-            <div class="logo-person" aria-hidden="true"></div>
-            <div class="logo-film"><span>ES</span> <em>Cine</em></div>
+       <div class="auth-logo" aria-label="ES Cine">
+            <img src="assets/img/logoblancoOF.png" alt="Logo Cine" style="max-height: 150px; width: auto; border-radius: 12px;">
         </div>
 
         <section class="auth-card">
@@ -52,7 +51,7 @@ $buttonLabel = $isRegister ? 'REGISTRAR' : 'INGRESAR';
                 </div>
 
                 <div class="form-field">
-                    <label for="password">Contrasena</label>
+                    <label for="password">Contraseña</label>
                     <input id="password" name="password" type="password" autocomplete="<?= $isRegister ? 'new-password' : 'current-password' ?>">
                 </div>
 
