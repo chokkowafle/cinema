@@ -6851,3 +6851,43 @@ p {
         min-width: 100%;
     }
 }
+
+/* Estilo Mercado Pago para el Modal */
+#paymentModal .modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#paymentModal .modal-header {
+    background-color: #009ee3;
+    color: white;
+    padding: 1.5rem;
+}
+
+#paymentModal .form-control {
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 16px;
+}
+
+#paymentModal .form-control:focus {
+    border-color: #009ee3;
+    box-shadow: 0 0 0 0.2rem rgba(0, 158, 227, 0.25);
+}
+
+#paymentModal .btn-danger {
+    background-color: #009ee3;
+    border: none;
+    padding: 12px;
+    transition: background 0.3s;
+}
+
+#paymentModal .btn-danger:hover {
+    background-color: #007eb5;
+}
+
+#paymentModal .text-muted.small {
+    color: #666 !important;
+    letter-spacing: 0.5px;
+}

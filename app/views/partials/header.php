@@ -66,8 +66,8 @@ if ($isAuthenticated) {
 ?>
 <header class="topbar cinema-topbar">
     <a class="brand cinema-brand" href="index.php?page=cartelera" aria-label="ES Cine cartelera">
-    <img src="assets/img/logoblancoOF.png" alt="Logo Cine" style="max-height: 120px; width: auto; border-radius: 12px;">
-</a>
+        <img src="assets/img/logoblancoOF.png" alt="Logo Cine" style="max-height: 120px; width: auto; border-radius: 12px;">
+    </a>
 
     <nav class="topnav cinema-nav" aria-label="Navegacion principal"> 
         <?php foreach ($navItems as $item): ?>
