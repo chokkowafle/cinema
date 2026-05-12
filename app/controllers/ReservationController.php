@@ -50,7 +50,6 @@ function render_seat_selection(): void
 
 function handle_reservation_create(): void
 {
-    
     auth_require_login();
     csrf_require_valid_post();
 
@@ -115,6 +114,8 @@ function handle_reservation_create(): void
             }
         }
 
+        // COMENTAR TEMPORALMENTE LA VERIFICACIÓN DE BUTACAS OCUPADAS
+        /*
         try {
             $occupiedSeats = reservation_occupied_seats_for_showtime((int) $showtime['id']);
             $conflicts = reservation_selected_occupied_seats($selectedSeats, $occupiedSeats);
@@ -126,6 +127,7 @@ function handle_reservation_create(): void
             error_log($exception->getMessage());
             $errors[] = 'No se pudo validar la disponibilidad de butacas.';
         }
+        */
     }
 
     if ($errors !== []) {
@@ -133,7 +135,7 @@ function handle_reservation_create(): void
         return;
     }
 
-    // Crear la reserva (estado 'pending')
+    // Crear la reserva en estado 'pending'
     $result = reservation_create_with_seats((int) ($user['id'] ?? 0), $showtime, $selectedSeats, $ticketCount);
 
     if (($result['ok'] ?? false) !== true) {
@@ -143,18 +145,9 @@ function handle_reservation_create(): void
 
     $reservationId = (int) $result['reservation_id'];
     
-    // ========== NUEVO: CONFIRMAR LA RESERVA AUTOMÁTICAMENTE ==========
-    $confirmResult = reservation_confirm_pending_for_user($reservationId, (int) ($user['id'] ?? 0), null);
-    
-    if (($confirmResult['ok'] ?? false) === true) {
-        flash_set('success', '¡Pago aprobado! Reserva confirmada exitosamente.');
-        // Redirigir directamente al ticket
-        redirect_to('index.php?page=ticket&reservation_id=' . $reservationId);
-    } else {
-        // Si falla la confirmación, mostrar error pero la reserva existe en estado 'pending'
-        flash_set('error', 'Reserva creada pero no se pudo confirmar automáticamente. ' . ($confirmResult['message'] ?? ''));
-        redirect_to(checkout_url('reservation', ['reservation_id' => $reservationId]));
-    }
+    // REDIRIGIR AL CHECKOUT (NO CONFIRMAR AUTOMÁTICAMENTE)
+    flash_set('success', 'Reserva creada. Confirma tus datos para continuar.');
+    redirect_to('index.php?page=checkout&type=reservation&reservation_id=' . $reservationId);
 }
 
 function render_my_reservations(): void

@@ -464,7 +464,7 @@ function reservation_confirm_pending_for_user(int $reservationId, int $userId, ?
     if ($reservationId <= 0 || $userId <= 0) {
         return [
             'ok' => false,
-            'message' => 'Selecciona una reserva pendiente valida.',
+            'message' => 'Datos de reserva inválidos.',
         ];
     }
 
@@ -473,26 +473,21 @@ function reservation_confirm_pending_for_user(int $reservationId, int $userId, ?
     try {
         $pdo->beginTransaction();
 
-        $reservationStatement = $pdo->prepare(
+        // Verificar reserva
+        $stmt = $pdo->prepare(
             'SELECT id, user_id, status, total_amount
              FROM reservations
-             WHERE id = :id
-               AND user_id = :user_id
-             LIMIT 1
+             WHERE id = :id AND user_id = :user_id
              FOR UPDATE'
         );
-        $reservationStatement->execute([
-            'id' => $reservationId,
-            'user_id' => $userId,
-        ]);
-        $reservation = $reservationStatement->fetch();
+        $stmt->execute(['id' => $reservationId, 'user_id' => $userId]);
+        $reservation = $stmt->fetch();
 
         if ($reservation === false) {
             $pdo->rollBack();
-
             return [
                 'ok' => false,
-                'message' => 'La reserva no existe o no pertenece a tu cuenta.',
+                'message' => 'La reserva no existe o no te pertenece.',
             ];
         }
 
@@ -500,123 +495,59 @@ function reservation_confirm_pending_for_user(int $reservationId, int $userId, ?
 
         if ($status === 'confirmed') {
             $pdo->rollBack();
-
             return [
-                'ok' => false,
-                'message' => 'La reserva ya esta confirmada.',
-            ];
-        }
-
-        if ($status === 'cancelled') {
-            $pdo->rollBack();
-
-            return [
-                'ok' => false,
-                'message' => 'La reserva cancelada no puede confirmarse.',
+                'ok' => true,
+                'message' => 'La reserva ya estaba confirmada.',
             ];
         }
 
         if ($status !== 'pending') {
             $pdo->rollBack();
-
             return [
                 'ok' => false,
-                'message' => 'La reserva no esta disponible para checkout.',
+                'message' => 'La reserva no está pendiente de confirmación.',
             ];
         }
 
-        $paymentStatement = $pdo->prepare(
-            'SELECT id, reference_code
-             FROM payments
-             WHERE reservation_id = :reservation_id
-             LIMIT 1
-             FOR UPDATE'
-        );
-        $paymentStatement->execute(['reservation_id' => $reservationId]);
-        $existingPayment = $paymentStatement->fetch();
-
-        if ($existingPayment !== false) {
-            $pdo->rollBack();
-
-            return [
-                'ok' => false,
-                'message' => 'La reserva ya tiene un pago simulado registrado.',
-            ];
+        // Verificar si ya existe un pago
+        $stmt = $pdo->prepare('SELECT id FROM payments WHERE reservation_id = :reservation_id LIMIT 1');
+        $stmt->execute(['reservation_id' => $reservationId]);
+        
+        if ($stmt->fetch() === false) {
+            // Crear pago simulado
+            $totalAmount = (float) ($reservation['total_amount'] ?? 0);
+            $paymentStmt = $pdo->prepare(
+                'INSERT INTO payments (user_id, reservation_id, payment_type, amount, status, reference_code, payment_method, paid_at, created_at)
+                 VALUES (:user_id, :reservation_id, "reservation", :amount, "paid", :reference, "simulated_card", NOW(), NOW())'
+            );
+            $paymentStmt->execute([
+                'user_id' => $userId,
+                'reservation_id' => $reservationId,
+                'amount' => $totalAmount,
+                'reference' => 'PAY-' . strtoupper(uniqid()),
+            ]);
         }
 
-        $seatStatement = $pdo->prepare(
-            'SELECT seat_row, seat_number
-             FROM reservation_seats
-             WHERE reservation_id = :reservation_id
-             ORDER BY seat_row ASC, seat_number ASC'
+        // Cambiar estado a confirmed
+        $updateStmt = $pdo->prepare(
+            'UPDATE reservations SET status = "confirmed" WHERE id = :id AND status = "pending"'
         );
-        $seatStatement->execute(['reservation_id' => $reservationId]);
-        $seats = $seatStatement->fetchAll();
-        $seatCount = max(1, count($seats));
-        $subtotalAmount = (float) ($reservation['total_amount'] ?? 0);
-        $pricing = checkout_coupon_price_summary_for_code('reservation', $couponCode, $subtotalAmount);
-        $discountAmount = (float) ($pricing['discount_amount'] ?? 0);
-        $totalAmount = (float) ($pricing['total_amount'] ?? $subtotalAmount);
-
-        $payment = payment_insert_simulated_paid(
-            $pdo,
-            $userId,
-            'reservation',
-            $reservationId,
-            [
-                [
-                    'item_type' => 'ticket',
-                    'item_label' => 'Entradas reserva ' . reservation_visual_code($reservationId),
-                    'quantity' => $seatCount,
-                    'unit_amount' => $subtotalAmount / $seatCount,
-                    'total_amount' => $subtotalAmount,
-                ],
-            ],
-            $subtotalAmount,
-            $discountAmount,
-            $totalAmount
-        );
-
-        $updateStatement = $pdo->prepare(
-            'UPDATE reservations
-             SET status = :confirmed_status
-             WHERE id = :id
-               AND user_id = :user_id
-               AND status = :pending_status'
-        );
-        $updateStatement->execute([
-            'confirmed_status' => 'confirmed',
-            'id' => $reservationId,
-            'user_id' => $userId,
-            'pending_status' => 'pending',
-        ]);
-
-        if ($updateStatement->rowCount() !== 1) {
-            $pdo->rollBack();
-
-            return [
-                'ok' => false,
-                'message' => 'No se pudo confirmar la reserva porque su estado cambio.',
-            ];
-        }
+        $updateStmt->execute(['id' => $reservationId]);
 
         $pdo->commit();
 
         return [
             'ok' => true,
-            'message' => 'Reserva confirmada con pago simulado. Referencia ' . $payment['reference_code'] . '.',
-            'payment' => $payment,
+            'message' => 'Reserva confirmada exitosamente.',
         ];
-    } catch (Throwable $exception) {
+    } catch (Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-
-        error_log($exception->getMessage());
-
+        error_log("Error en confirmación: " . $e->getMessage());
         return [
             'ok' => false,
-            'message' => 'No se pudo confirmar la reserva en este momento. Intenta nuevamente.',
+            'message' => 'Error interno: ' . $e->getMessage(),
         ];
     }
 }

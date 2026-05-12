@@ -332,9 +332,9 @@ if ($hasReservationConfirmation) {
                                 </div>
 
                                 <div class="seat-submit-wrap" data-seat-submit-guard>
-                                    <button id="btn-reservar" class="seat-submit" type="submit" data-seat-submit>
-    Reservar entradas
-</button>
+                                   <button id="btn-reservar" class="seat-submit" type="submit" data-seat-submit>
+                                     Reservar entradas
+                                </button>
                                 </div>
                             </div>
                         </div>
@@ -345,213 +345,44 @@ if ($hasReservationConfirmation) {
     </main>
 
     <script src="assets/js/app.js" defer></script>
-    <!-- CARGAR BOOTSTRAP PRIMERO, ANTES QUE CUALQUIER OTRO SCRIPT -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- MODAL DE PAGO - HEADER COMPACTO CON LOGO GRANDE -->
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #009ee3; color: white; border-bottom: none; padding: 12px 20px;">
-        <!-- Logo Mercado Papu (grande) -->
-        <img src="assets/img/mercado-papu.png" alt="Mercado Papu" style="height: 90px; width: auto; border-radius: 3px;">
-        
-        <!-- Botón cerrar -->
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
-      </div>
-      
-      <div class="modal-body p-4">
-        <!-- Número de tarjeta -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold text-muted small">NÚMERO DE TARJETA</label>
-          <input id="pay-number" type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19">
-        </div>
-        
-        <!-- Titular -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold text-muted small">TITULAR</label>
-          <input id="pay-name" type="text" class="form-control" placeholder="Nombre en la tarjeta">
-        </div>
-        
-        <!-- Expiración y CVV -->
-        <div class="row g-3 mb-4">
-          <div class="col-6">
-            <label class="form-label fw-semibold text-muted small">EXPIRACIÓN</label>
-            <input id="pay-expiry" type="text" class="form-control" placeholder="MM/AA" maxlength="5">
-          </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold text-muted small">CVV</label>
-            <input id="pay-cvv" type="text" class="form-control" placeholder="123" maxlength="3">
-          </div>
-        </div>
-        
-        <!-- Mensaje de estado -->
-        <div id="pay-status" class="mb-3 text-center small"></div>
-        
-        <!-- Botón confirmar -->
-        <button id="pay-confirm-btn" type="button" class="btn w-100 fw-bold" style="background-color: #009ee3; color: white; padding: 12px; border: none;">
-          CONFIRMAR PAGO
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- SCRIPT DE PAGO (AHORA CON BOOTSTRAP DISPONIBLE) -->
-<script>
-// Esperar a que Bootstrap esté completamente cargado
-window.addEventListener('load', function() {
-    // Verificar que Bootstrap existe
-    if (typeof bootstrap === 'undefined') {
-        console.error("Bootstrap no cargado - reintentando");
-        // Si no existe, esperar más tiempo
-        setTimeout(arguments.callee, 500);
+   <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const btnContinuar = document.getElementById("btn-continuar");
+    const formReserva = document.querySelector(".seat-form");
+    
+    if (!btnContinuar || !formReserva) {
+        console.error("No se encontraron elementos");
         return;
     }
     
-    console.log("Bootstrap cargado correctamente");
-    
-    // Buscar o crear el botón de reserva
-    let btnReservar = document.getElementById("btn-reservar");
-    
-    if (!btnReservar) {
-        const botonOriginal = document.querySelector(".seat-submit[data-seat-submit]");
-        if (botonOriginal) {
-            btnReservar = document.createElement("button");
-            btnReservar.id = "btn-reservar";
-            btnReservar.className = botonOriginal.className;
-            btnReservar.textContent = "Reservar entradas";
-            btnReservar.type = "button";
-            botonOriginal.parentNode.replaceChild(btnReservar, botonOriginal);
+    btnContinuar.addEventListener("click", function(e) {
+        e.preventDefault();
+        
+        // Validar que haya butacas seleccionadas
+        const checkboxesSeleccionados = document.querySelectorAll('[data-seat-checkbox]:checked');
+        const totalButacas = parseInt(formReserva.dataset.ticketCount || '0', 10);
+        
+        if (checkboxesSeleccionados.length !== totalButacas) {
+            alert(`Selecciona ${totalButacas} butaca${totalButacas !== 1 ? 's' : ''} antes de continuar.`);
+            return;
         }
-    }
-    
-    const formReserva = document.querySelector(".seat-form");
-    
-    if (btnReservar && formReserva) {
-        btnReservar.addEventListener("click", function(e) {
-            e.preventDefault();
-            
-            // Validar butacas seleccionadas
-            const checkboxesSeleccionados = document.querySelectorAll('[data-seat-checkbox]:checked');
-            const totalButacas = parseInt(formReserva.dataset.ticketCount || '0', 10);
-            
-            if (checkboxesSeleccionados.length !== totalButacas) {
-                alert(`Selecciona ${totalButacas} butaca${totalButacas !== 1 ? 's' : ''}`);
-                return;
-            }
-            
-            // Abrir modal
-            const modalEl = document.getElementById("paymentModal");
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
+        
+        // Guardar datos seleccionados en sessionStorage
+        const selectedSeats = [];
+        document.querySelectorAll('[data-seat-checkbox]:checked').forEach(cb => {
+            selectedSeats.push(cb.value);
         });
-    }
-    
-    // Lógica del pago
-    const confirmBtn = document.getElementById("pay-confirm-btn");
-    if (confirmBtn) {
-        confirmBtn.addEventListener("click", function() {
-            const number = document.getElementById("pay-number").value.replace(/\s/g, "");
-            const name = document.getElementById("pay-name").value.trim();
-            const expiry = document.getElementById("pay-expiry").value.trim();
-            const cvv = document.getElementById("pay-cvv").value.trim();
-            const statusDiv = document.getElementById("pay-status");
-            
-            // Validaciones
-            if (number.length !== 16) {
-                statusDiv.innerHTML = '<span class="text-danger">Número inválido (16 dígitos)</span>';
-                return;
-            }
-            if (name.length < 3) {
-                statusDiv.innerHTML = '<span class="text-danger">Nombre requerido</span>';
-                return;
-            }
-            if (!expiry.match(/^\d{2}\/\d{2}$/)) {
-                statusDiv.innerHTML = '<span class="text-danger">Formato MM/AA</span>';
-                return;
-            }
-            if (cvv.length !== 3) {
-                statusDiv.innerHTML = '<span class="text-danger">CVV inválido (3 dígitos)</span>';
-                return;
-            }
-            
-            // Simular pago
-            const btn = this;
-            const textoOriginal = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = "Procesando...";
-            statusDiv.innerHTML = '<span class="text-secondary">Procesando pago...</span>';
-            
-            setTimeout(() => {
-                // Tarjetas de rechazo
-                if (number === "1111111111111111") {
-                    statusDiv.innerHTML = '<span class="text-danger">Tarjeta rechazada</span>';
-                    btn.disabled = false;
-                    btn.innerHTML = textoOriginal;
-                    return;
-                }
-                if (number === "2222222222222222") {
-                    statusDiv.innerHTML = '<span class="text-danger">Fondos insuficientes</span>';
-                    btn.disabled = false;
-                    btn.innerHTML = textoOriginal;
-                    return;
-                }
-                if (number === "3333333333333333") {
-                    statusDiv.innerHTML = '<span class="text-danger">Tarjeta bloqueada</span>';
-                    btn.disabled = false;
-                    btn.innerHTML = textoOriginal;
-                    return;
-                }
-                if (number === "4444444444444444") {
-                    statusDiv.innerHTML = '<span class="text-danger">Timeout - Intente nuevamente</span>';
-                    btn.disabled = false;
-                    btn.innerHTML = textoOriginal;
-                    return;
-                }
-                
-                // Pago exitoso
-                statusDiv.innerHTML = '<span class="text-success">¡Pago aprobado!</span>';
-                
-                setTimeout(() => {
-                    const modalEl = document.getElementById("paymentModal");
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
-                    
-                    // Enviar formulario
-                    formReserva.submit();
-                }, 1000);
-            }, 2000);
-        });
-    }
-    
-    // Formateadores
-    const payNumber = document.getElementById("pay-number");
-    if (payNumber) {
-        payNumber.addEventListener("input", function() {
-            this.value = this.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
-        });
-    }
-    
-    const payExpiry = document.getElementById("pay-expiry");
-    if (payExpiry) {
-        payExpiry.addEventListener("input", function() {
-            let val = this.value.replace(/\D/g, "");
-            if (val.length >= 2) {
-                val = val.substring(0, 2) + "/" + val.substring(2, 4);
-            }
-            this.value = val.substring(0, 5);
-        });
-    }
-    
-    const payCvv = document.getElementById("pay-cvv");
-    if (payCvv) {
-        payCvv.addEventListener("input", function() {
-            this.value = this.value.replace(/\D/g, "").substring(0, 3);
-        });
-    }
+        
+        const showtimeId = formReserva.querySelector('[name="showtime_id"]').value;
+        const ticketCount = formReserva.dataset.ticketCount;
+        
+        sessionStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+        sessionStorage.setItem('showtimeId', showtimeId);
+        sessionStorage.setItem('ticketCount', ticketCount);
+        
+        // Redirigir a página de confirmación
+        window.location.href = 'index.php?page=confirm_reservation';
+    });
 });
 </script>
 </body>
