@@ -1,3 +1,49 @@
+/* ============================================
+   IMPORTAR FUENTES DIRECTAMENTE DESDE CSS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@300;400;500;600;700&display=swap');
+
+/* ============================================
+   FUENTES GLOBALES
+   ============================================ */
+/* Forzar Bebas Neue en títulos y botones */
+h1, h2, h3, h4, h5, h6,
+.eyebrow,
+.brand-film,
+.movie-title,
+.seat-summary-group h2,
+.checkout-section-heading h2,
+.checkout-section-heading .eyebrow,
+button, .btn, .seat-submit, .checkout-confirm-button,
+.topbar .cinema-nav a,
+.user-pill span,
+#paymentModal .modal-title,
+#paymentModal .btn {
+    font-family: "Bebas Neue", sans-serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 1px !important;
+}
+
+/* Forzar Fredoka en textos */
+body, p, span, li, a:not(.cinema-nav a), input, label,
+.movie-detail, .seat-row-label, .seat-legend,
+.checkout-details, .checkout-amount-list,
+.reservation-status-badge, .notice,
+#paymentModal .form-label {
+    font-family: "Fredoka", sans-serif !important;
+    font-optical-sizing: auto !important;
+    font-weight: 400 !important;
+}
+
+
+/* Pesos específicos para Fredoka */
+strong, b, .fw-bold {
+    font-weight: 600;
+}
+
+small, .small, .text-muted {
+    font-weight: 300;
+}
 :root {
     color-scheme: light;
     --cinema-bg: #001b31;
