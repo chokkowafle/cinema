@@ -290,15 +290,14 @@ function handle_checkout_confirm(): void
         }
 
         $result = reservation_confirm_pending_for_user(
-        $reservationId,
-        (int) ($user['id'] ?? 0),
-        null  // Cambiado de checkout_coupon_session_code('reservation') a null
+            $reservationId,
+            (int) ($user['id'] ?? 0),
+            checkout_coupon_session_code('reservation')
         );
         $isOk = ($result['ok'] ?? false) === true;
         $resultMessage = (string) ($result['message'] ?? 'No se pudo confirmar la reserva.');
 
         if ($isOk) {
-            
             $resultMessage = 'Reserva confirmada. No hubo cobro real.';
         } elseif (str_contains(strtolower($resultMessage), 'pago simulado')) {
             $resultMessage = 'La reserva ya tiene un pago registrado.';
