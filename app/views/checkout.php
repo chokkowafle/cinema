@@ -394,31 +394,53 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
                 btn.innerHTML = "Procesando...";
                 statusDiv.innerHTML = '<span class="text-secondary">Procesando pago...</span>';
                 
-                setTimeout(function() {
-                    if (number === "1111111111111111" || number === "2222222222222222" || number === "3333333333333333") {
-                        statusDiv.innerHTML = '<span class="text-danger">Pago rechazado</span>';
-                        btn.disabled = false;
-                        btn.innerHTML = "CONFIRMAR PAGO";
-                        return;
-                    }
-                    
-                    statusDiv.innerHTML = '<span class="text-success">¡Pago aprobado!</span>';
-                    setTimeout(function() {
-                        const modal = bootstrap.Modal.getInstance(modalEl);
-                        if (modal) modal.hide();
-                        confirmForm.submit();
-                    }, 800);
-                }, 2000);
-            });
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
-    })();
+               setTimeout(() => {
+    // Mensajes específicos por tarjeta by nico
+    if (number === "1111111111111111") {
+        statusDiv.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> ❌ Rechazado</span>';
+        btn.disabled = false;
+        btn.innerHTML = "CONFIRMAR PAGO";
+        return;
+    }
     
+    if (number === "2222222222222222") {
+        statusDiv.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> ❌ Fondos insuficientes</span>';
+        btn.disabled = false;
+        btn.innerHTML = "CONFIRMAR PAGO";
+        return;
+    }
+    
+    if (number === "3333333333333333") {
+        statusDiv.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> ❌ Tarjeta bloqueada</span>';
+        btn.disabled = false;
+        btn.innerHTML = "CONFIRMAR PAGO";
+        return;
+    }
+    
+    if (number === "4444444444444444") {
+        statusDiv.innerHTML = '<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ❌ Timeout - Intente nuevamente</span>';
+        btn.disabled = false;
+        btn.innerHTML = "CONFIRMAR PAGO";
+        return;
+    }
+    
+    // Pago exitoso (cualquier otra tarjeta)
+    statusDiv.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ¡Pago aprobado!</span>';
+    setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    confirmForm.submit();
+                }, 800);
+            }, 2000);
+        });
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
     // Formateadores de campos
     document.addEventListener("DOMContentLoaded", function() {
         const payNumber = document.getElementById("pay-number");
