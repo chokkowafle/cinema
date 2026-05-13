@@ -183,16 +183,24 @@ $isMemberDemoPage = $memberDemo !== [];
                         <?php else: ?>
                             <div class="confiteria-catalog-grid">
                                 <?php foreach ($catalogItems as $catalogItem): ?>
-                                    <?php $catalogImage = trim((string) ($catalogItem['icon'] ?? 'default.jpg')); ?>
-                                        <article class="confiteria-card">
-                                            <div class="confiteria-card-visual">
-                                    <?php if (($catalogItem['label'] ?? '') !== ''): ?>
-                                        <span class="confiteria-card-label"><?= e($catalogItem['label']) ?></span>
-                                    <?php endif; ?>
-                                            <img src="assets/img/<?= e($catalogImage) ?>" alt="<?= e($catalogItem['name'] ?? 'Producto') ?>" class="confiteria-card-icon">
+                                    <?php
+                                    $catalogVisual = trim((string) ($catalogItem['icon'] ?? ''));
+                                    $catalogImageCandidate = preg_match('/^[a-z0-9._-]+\.(?:jpe?g|png|webp|gif)$/i', $catalogVisual) === 1 ? $catalogVisual : '';
+                                    $catalogImage = $catalogImageCandidate !== '' && is_file(__DIR__ . '/../../public/assets/img/' . $catalogImageCandidate) ? $catalogImageCandidate : '';
+                                    $catalogIcon = $catalogImage === '' ? ($catalogImageCandidate === '' && $catalogVisual !== '' ? $catalogVisual : '🍿') : '';
+                                    ?>
+                                    <article class="confiteria-card">
+                                        <div class="confiteria-card-visual">
+                                            <?php if (($catalogItem['label'] ?? '') !== ''): ?>
+                                                <span class="confiteria-card-label"><?= e($catalogItem['label']) ?></span>
+                                            <?php endif; ?>
+                                            <?php if ($catalogImage !== ''): ?>
+                                                <img src="assets/img/<?= e($catalogImage) ?>" alt="<?= e($catalogItem['name'] ?? 'Producto') ?>" class="confiteria-card-image">
+                                            <?php else: ?>
+                                                <span class="confiteria-card-icon" aria-hidden="true"><?= e($catalogIcon) ?></span>
+                                            <?php endif; ?>
                                         </div>
-                                            
-                                       
+
                                         <div class="confiteria-card-copy">
                                             <h3><?= e($catalogItem['name'] ?? '') ?></h3>
                                             <p><?= e($catalogItem['description'] ?? '') ?></p>

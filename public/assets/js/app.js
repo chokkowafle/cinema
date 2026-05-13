@@ -315,129 +315,167 @@ document.querySelectorAll('[data-confirm-action]').forEach((button) => {
     });
 });
 
-// ========== LÓGICA DE PAGO (desde Código 1) ==========
-document.addEventListener("DOMContentLoaded", () => {
-  // Buscar el botón de reserva (ya existe en el Código 2)
-  const btnReservar = document.getElementById("btn-reservar");
-  // Buscar el formulario de reserva por su clase (no tiene ID fijo en Código 2)
-  const formReserva = document.querySelector(".seat-form");
+function initPaymentModal() {
+    const modalElement = document.querySelector('[data-payment-modal]');
+    const forms = Array.from(document.querySelectorAll('[data-payment-modal-form]'));
 
-  if (btnReservar) {
-    btnReservar.addEventListener("click", (e) => {
-      e.preventDefault();
-      // Mostrar modal de pago
-      const myModal = new bootstrap.Modal(document.getElementById("paymentModal"));
-      myModal.show();
-    });
-  }
-
-  // Lógica del botón CONFIRMAR dentro del modal
-  const confirmBtn = document.getElementById("pay-confirm-btn");
-  if (confirmBtn) {
-    confirmBtn.addEventListener("click", function () {
-      const btn = document.getElementById("pay-confirm-btn");
-      const status = document.getElementById("pay-status");
-
-      const number = document.getElementById("pay-number").value;
-      const cleanNumber = number.replace(/\s/g, "").trim();
-      const name = document.getElementById("pay-name").value.trim();
-      const expiry = document.getElementById("pay-expiry").value.trim();
-      const cvv = document.getElementById("pay-cvv").value.trim();
-
-      // Validaciones
-      if (cleanNumber.length !== 16) {
-        status.innerHTML = `<span class="text-danger">Número de tarjeta inválido</span>`;
+    if (modalElement === null || forms.length === 0 || typeof bootstrap === 'undefined') {
         return;
-      }
-      if (name.length < 3) {
-        status.innerHTML = `<span class="text-danger">Ingresa el nombre del titular</span>`;
-        return;
-      }
-      if (expiry.length !== 5) {
-        status.innerHTML = `<span class="text-danger">Fecha inválida (MM/AA)</span>`;
-        return;
-      }
-      if (cvv.length !== 3) {
-        status.innerHTML = `<span class="text-danger">CVV inválido (3 dígitos)</span>`;
-        return;
-      }
+    }
 
-      const partesFecha = expiry.split("/");
-      if (partesFecha.length !== 2) {
-        status.innerHTML = `<span class="text-danger">El formato debe incluir la barra (MM/AA)</span>`;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    const confirmButton = modalElement.querySelector('[data-payment-modal-confirm]');
+    const status = modalElement.querySelector('[data-payment-modal-status]');
+    const numberInput = modalElement.querySelector('[data-payment-card-number]');
+    const nameInput = modalElement.querySelector('[data-payment-card-name]');
+    const expiryInput = modalElement.querySelector('[data-payment-card-expiry]');
+    const cvvInput = modalElement.querySelector('[data-payment-card-cvv]');
+    const inputs = [numberInput, nameInput, expiryInput, cvvInput].filter((input) => input !== null);
+    const originalButtonText = confirmButton !== null ? confirmButton.textContent.trim() : '';
+    let activeForm = null;
+
+    if (confirmButton === null || status === null || numberInput === null || nameInput === null || expiryInput === null || cvvInput === null) {
         return;
-      }
+    }
 
-      const expMonth = parseInt(partesFecha[0], 10);
-      const expYear = parseInt(partesFecha[1], 10) + 2000;
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
+    const setStatus = (message, type = '') => {
+        status.textContent = message;
+        status.classList.toggle('is-error', type === 'error');
+        status.classList.toggle('is-success', type === 'success');
+        status.classList.toggle('is-muted', type === 'muted');
+    };
 
-      if (expMonth < 1 || expMonth > 12) {
-        status.innerHTML = `<span class="text-danger">Mes inválido (01-12)</span>`;
-        return;
-      }
-      if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
-        status.innerHTML = `<span class="text-danger">Tarjeta vencida</span>`;
-        return;
-      }
+    const resetModal = () => {
+        inputs.forEach((input) => {
+            input.value = '';
+        });
+        confirmButton.disabled = false;
+        confirmButton.textContent = originalButtonText;
+        setStatus('', '');
+    };
 
-      // SIMULACIÓN DE RECHAZOS SÍNCRONOS
-      const motivosRechazo = {
-        1111111111111111: "Tarjeta rechazada por el banco emisor.",
-        2222222222222222: "Fondos insuficientes.",
-        3333333333333333: "Tarjeta bloqueada o reportada como robada.",
-      };
+    const cardNumber = () => numberInput.value.replace(/\D/g, '');
 
-      if (motivosRechazo[cleanNumber]) {
-        status.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> ${motivosRechazo[cleanNumber]}</span>`;
-        return;
-      }
+    const validateExpiry = () => {
+        const match = expiryInput.value.match(/^(\d{2})\/(\d{2})$/);
 
-      btn.disabled = true;
-      const originalBtnText = btn.innerHTML;
-      btn.innerHTML = "Procesando...";
-      status.innerHTML = `<span class="text-secondary">Conectando con el banco...</span>`;
-
-      setTimeout(() => {
-        // SIMULACIÓN DE RECHAZO ASÍNCRONO
-        if (cleanNumber === "4444444444444444") {
-          status.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Tiempo de espera agotado. Intente nuevamente.</span>`;
-          btn.disabled = false;
-          btn.innerHTML = originalBtnText;
-          return;
+        if (match === null) {
+            return 'Usa formato MM/AA.';
         }
 
-        // PAGO APROBADO
-        status.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ¡Pago aprobado! Generando reserva...</span>`;
+        const month = Number.parseInt(match[1], 10);
+        const year = Number.parseInt(match[2], 10) + 2000;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
 
-        setTimeout(() => {
-          if (formReserva) formReserva.submit();
-        }, 1000);
-      }, 2000);
-    });
-  }
+        if (month < 1 || month > 12) {
+            return 'El mes debe estar entre 01 y 12.';
+        }
 
-  // Formateadores de campos
-  const payNumber = document.getElementById("pay-number");
-  if (payNumber) {
-    payNumber.addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
-    });
-  }
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+            return 'La tarjeta de prueba esta vencida.';
+        }
 
-  const payExpiry = document.getElementById("pay-expiry");
-  if (payExpiry) {
-    payExpiry.addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "").replace(/^(\d{2})/, "$1/");
-    });
-  }
+        return '';
+    };
 
-  const payCvv = document.getElementById("pay-cvv");
-  if (payCvv) {
-    payCvv.addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "").substring(0, 3);
+    const validatePayment = () => {
+        if (cardNumber().length !== 16) {
+            return 'Ingresa un numero de tarjeta de 16 digitos.';
+        }
+
+        if (nameInput.value.trim().length < 3) {
+            return 'Ingresa el nombre del titular.';
+        }
+
+        const expiryError = validateExpiry();
+
+        if (expiryError !== '') {
+            return expiryError;
+        }
+
+        if (cvvInput.value.replace(/\D/g, '').length !== 3) {
+            return 'Ingresa un CVV de 3 digitos.';
+        }
+
+        return '';
+    };
+
+    forms.forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.paymentModalConfirmed === 'true') {
+                delete form.dataset.paymentModalConfirmed;
+                return;
+            }
+
+            event.preventDefault();
+            activeForm = form;
+            resetModal();
+            modal.show();
+        });
     });
-  }
-});
+
+    modalElement.addEventListener('shown.bs.modal', () => {
+        numberInput.focus();
+    });
+
+    numberInput.addEventListener('input', () => {
+        numberInput.value = cardNumber().replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
+    });
+
+    expiryInput.addEventListener('input', () => {
+        const value = expiryInput.value.replace(/\D/g, '').slice(0, 4);
+        expiryInput.value = value.length > 2 ? `${value.slice(0, 2)}/${value.slice(2)}` : value;
+    });
+
+    cvvInput.addEventListener('input', () => {
+        cvvInput.value = cvvInput.value.replace(/\D/g, '').slice(0, 3);
+    });
+
+    confirmButton.addEventListener('click', () => {
+        const validationError = validatePayment();
+        const rejectedCards = {
+            1111111111111111: 'Tarjeta rechazada por el banco emisor.',
+            2222222222222222: 'Fondos insuficientes.',
+            3333333333333333: 'Tarjeta bloqueada.',
+            4444444444444444: 'Tiempo de espera agotado. Intenta nuevamente.',
+        };
+        const cleanNumber = cardNumber();
+
+        if (validationError !== '') {
+            setStatus(validationError, 'error');
+            return;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(rejectedCards, cleanNumber)) {
+            setStatus(rejectedCards[cleanNumber], 'error');
+            return;
+        }
+
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Procesando...';
+        setStatus('Validando pago simulado...', 'muted');
+
+        window.setTimeout(() => {
+            setStatus('Pago aprobado. Confirmando...', 'success');
+
+            window.setTimeout(() => {
+                if (activeForm === null) {
+                    return;
+                }
+
+                activeForm.dataset.paymentModalConfirmed = 'true';
+
+                if (typeof activeForm.requestSubmit === 'function') {
+                    activeForm.requestSubmit();
+                    return;
+                }
+
+                activeForm.submit();
+            }, 700);
+        }, 900);
+    });
+}
+
+initPaymentModal();

@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS concession_products (
     name VARCHAR(120) NOT NULL,
     description VARCHAR(255) NOT NULL,
     price_amount DECIMAL(10, 2) NOT NULL,
-    icon VARCHAR(20) DEFAULT NULL,
+    icon VARCHAR(50) DEFAULT NULL,
     badge VARCHAR(40) DEFAULT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     sort_order INT UNSIGNED NOT NULL DEFAULT 0,

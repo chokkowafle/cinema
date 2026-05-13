@@ -72,6 +72,7 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> - Reserva Salas Cine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body class="app-screen checkout-screen">
@@ -244,8 +245,8 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
                         <dd>Sin cobro real</dd>
                     </div>
                     <div>
-                        <dt>Datos sensibles</dt>
-                        <dd>No se solicitan ni almacenan datos de pago.</dd>
+                        <dt>Datos de prueba</dt>
+                        <dd>Usa datos inventados; no se almacenan.</dd>
                     </div>
                 </dl>
 
@@ -287,7 +288,7 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
 
                 <p class="checkout-payment-note"><?= e($paymentHelp) ?></p>
 
-                <form class="checkout-confirm-form" action="index.php?action=checkout_confirm" method="post">
+                <form class="checkout-confirm-form" action="index.php?action=checkout_confirm" method="post" data-payment-modal-form>
                     <?= csrf_token_field() ?>
                     <?php foreach ($confirmFields as $fieldName => $fieldValue): ?>
                         <input type="hidden" name="<?= e($fieldName) ?>" value="<?= e($fieldValue) ?>">
@@ -302,6 +303,12 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
         </div>
     </main>
 
+    <?php
+    $paymentModalAmount = $totalFinalLabel;
+    $paymentModalActionLabel = $confirmButtonLabel;
+    require __DIR__ . '/partials/payment_modal.php';
+    ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="assets/js/app.js" defer></script>
 </body>
 </html>
