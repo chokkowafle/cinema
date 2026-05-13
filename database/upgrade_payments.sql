@@ -6,20 +6,45 @@
 -- Ejecutar contra la base activa, por ejemplo:
 -- mysql -u root reserva_salas_cine < database/upgrade_payments.sql
 
-SET NAMES utf8mb4;
+-- ============================================
+-- ACTUALIZACIÓN DE TABLAS DE PAGOS
+-- Ejecutar contra base de datos existente
+-- ============================================
 
+-- 1. Agregar columnas faltantes a payments
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_type VARCHAR(50) DEFAULT 'simulated' AFTER user_id;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'pending' AFTER status;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS amount DECIMAL(10, 2) DEFAULT NULL AFTER total_amount;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT NULL;
+
+-- 2. Modificar columnas existentes si es necesario
+ALTER TABLE payments MODIFY COLUMN status ENUM('pending', 'paid', 'simulated_paid', 'failed', 'cancelled') NOT NULL DEFAULT 'pending';
+ALTER TABLE payments MODIFY COLUMN payment_method ENUM('simulated', 'card', 'cash') NOT NULL DEFAULT 'simulated';
+
+-- 3. Agregar índices si no existen
+ALTER TABLE payments ADD INDEX IF NOT EXISTS idx_payments_payment_type (payment_type);
+
+-- 4. Verificar estructura final
+SHOW COLUMNS FROM payments;
+SHOW COLUMNS FROM payment_items;
+SET NAMES utf8mb4;
+-- ahora chi la base de datos que funciona
 CREATE TABLE IF NOT EXISTS payments (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id INT UNSIGNED NOT NULL,
+    payment_type VARCHAR(50) NOT NULL DEFAULT 'simulated',
     checkout_type ENUM('reservation', 'concessions', 'membership') NOT NULL,
     reservation_id INT UNSIGNED DEFAULT NULL,
     reference_code VARCHAR(40) NOT NULL,
-    status ENUM('simulated_paid') NOT NULL DEFAULT 'simulated_paid',
+    status ENUM('pending', 'paid', 'simulated_paid', 'failed', 'cancelled') NOT NULL DEFAULT 'pending',
+    payment_status VARCHAR(50) DEFAULT 'pending',
     subtotal_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     discount_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    amount DECIMAL(10, 2) DEFAULT NULL,
     currency CHAR(3) NOT NULL DEFAULT 'CLP',
-    payment_method ENUM('simulated') NOT NULL DEFAULT 'simulated',
+    payment_method ENUM('simulated', 'card', 'cash') NOT NULL DEFAULT 'simulated',
+    description TEXT DEFAULT NULL,
     paid_at DATETIME DEFAULT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -37,7 +62,8 @@ CREATE TABLE IF NOT EXISTS payments (
     UNIQUE KEY uq_payments_reservation (reservation_id),
     KEY idx_payments_user_created (user_id, created_at),
     KEY idx_payments_checkout_type (checkout_type),
-    KEY idx_payments_status_paid_at (status, paid_at)
+    KEY idx_payments_status_paid_at (status, paid_at),
+    KEY idx_payments_payment_type (payment_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS payment_items (

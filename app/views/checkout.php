@@ -262,18 +262,13 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
                                 <strong><?= e($couponCode) ?></strong>
                                 <p><?= e(trim($couponLabel . ' ' . $couponPercentLabel)) ?></p>
                             </div>
-                            <!-- Formulario original (oculto) -->
-<form id="confirm-form" class="checkout-confirm-form" action="index.php?action=checkout_confirm" method="post" style="display: none;">
-    <?= csrf_token_field() ?>
-    <?php foreach ($confirmFields as $fieldName => $fieldValue): ?>
-        <input type="hidden" name="<?= e($fieldName) ?>" value="<?= e($fieldValue) ?>">
-    <?php endforeach; ?>
-</form>
-
-<!-- Botón que abre el modal -->
-<button id="btn-abrir-modal" class="checkout-confirm-button" type="button"<?= $canConfirm ? '' : ' disabled' ?>>
-    <?= e($confirmButtonLabel) ?>
-</button>
+                            <form class="checkout-coupon-remove-form" action="index.php?action=coupon_remove" method="post">
+                                <?= csrf_token_field() ?>
+                                <?php foreach ($couponFields as $fieldName => $fieldValue): ?>
+                                    <input type="hidden" name="<?= e($fieldName) ?>" value="<?= e($fieldValue) ?>">
+                                <?php endforeach; ?>
+                                <button type="submit">Quitar</button>
+                            </form>
                         </div>
                     <?php endif; ?>
 
@@ -292,18 +287,18 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
 
                 <p class="checkout-payment-note"><?= e($paymentHelp) ?></p>
 
-                <!-- Formulario original (oculto, se enviará después del pago) -->
-<form id="confirm-form" class="checkout-confirm-form" action="index.php?action=checkout_confirm" method="post" style="display: none;">
-    <?= csrf_token_field() ?>
-    <?php foreach ($confirmFields as $fieldName => $fieldValue): ?>
-        <input type="hidden" name="<?= e($fieldName) ?>" value="<?= e($fieldValue) ?>">
-    <?php endforeach; ?>
-</form>
+                <!-- FORMULARIO OCULTO (se envía después del pago) -->
+                <form id="confirm-form" class="checkout-confirm-form" action="index.php?action=checkout_confirm" method="post" style="display: none;">
+                    <?= csrf_token_field() ?>
+                    <?php foreach ($confirmFields as $fieldName => $fieldValue): ?>
+                        <input type="hidden" name="<?= e($fieldName) ?>" value="<?= e($fieldValue) ?>">
+                    <?php endforeach; ?>
+                </form>
 
-<!-- Nuevo botón que abre el modal de pago -->
-<button id="btn-abrir-modal" class="checkout-confirm-button" type="button"<?= $canConfirm ? '' : ' disabled' ?>>
-    <?= e($confirmButtonLabel) ?>
-</button>
+                <!-- BOTÓN ÚNICO para abrir el modal -->
+                <button id="btn-abrir-modal" class="checkout-confirm-button" type="button"<?= $canConfirm ? '' : ' disabled' ?>>
+                    <?= e($confirmButtonLabel) ?>
+                </button>
 
                 <a class="checkout-secondary-link" href="<?= e($returnUrl) ?>">Volver</a>
             </aside>
@@ -311,168 +306,142 @@ $receiptItems = $lastReceipt !== null && is_array($lastReceipt['items'] ?? null)
     </main>
 
     <script src="assets/js/app.js" defer></script>
-     <!-- CARGAR BOOTSTRAP PRIMERO, ANTES QUE CUALQUIER OTRO SCRIPT -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- MODAL DE PAGO - HEADER COMPACTO CON LOGO GRANDE -->
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #009ee3; color: white; border-bottom: none; padding: 12px 20px;">
-        <!-- Logo Mercado Papu (grande) -->
-        <img src="assets/img/mercado-papu.png" alt="Mercado Papu" style="height: 90px; width: auto; border-radius: 3px;">
-        
-        <!-- Botón cerrar -->
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
-      </div>
-      
-      <div class="modal-body p-4">
-        <!-- Número de tarjeta -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold text-muted small">NÚMERO DE TARJETA</label>
-          <input id="pay-number" type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19">
+    <!-- Bootstrap (para el modal) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Modal de pago -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #009ee3; color: white; border-bottom: none; padding: 12px 20px;">
+                    <img src="assets/img/mercado-papu.png" alt="Mercado Papu" style="height: 90px; width: auto; border-radius: 3px;">
+                    <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small">NÚMERO DE TARJETA</label>
+                        <input id="pay-number" type="text" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-muted small">TITULAR</label>
+                        <input id="pay-name" type="text" class="form-control" placeholder="Nombre en la tarjeta">
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-muted small">EXPIRACIÓN</label>
+                            <input id="pay-expiry" type="text" class="form-control" placeholder="MM/AA" maxlength="5">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-muted small">CVV</label>
+                            <input id="pay-cvv" type="text" class="form-control" placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    <div id="pay-status" class="mb-3 text-center small"></div>
+                    <button id="pay-confirm-btn" type="button" class="btn w-100 fw-bold" style="background-color: #009ee3; color: white; padding: 12px; border: none;">
+                        CONFIRMAR PAGO
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <!-- Titular -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold text-muted small">TITULAR</label>
-          <input id="pay-name" type="text" class="form-control" placeholder="Nombre en la tarjeta">
-        </div>
-        
-        <!-- Expiración y CVV -->
-        <div class="row g-3 mb-4">
-          <div class="col-6">
-            <label class="form-label fw-semibold text-muted small">EXPIRACIÓN</label>
-            <input id="pay-expiry" type="text" class="form-control" placeholder="MM/AA" maxlength="5">
-          </div>
-          <div class="col-6">
-            <label class="form-label fw-semibold text-muted small">CVV</label>
-            <input id="pay-cvv" type="text" class="form-control" placeholder="123" maxlength="3">
-          </div>
-        </div>
-        
-        <!-- Mensaje de estado -->
-        <div id="pay-status" class="mb-3 text-center small"></div>
-        
-        <!-- Botón confirmar -->
-        <button id="pay-confirm-btn" type="button" class="btn w-100 fw-bold" style="background-color: #009ee3; color: white; padding: 12px; border: none;">
-          CONFIRMAR PAGO
-        </button>
-      </div>
     </div>
-  </div>
-</div>
-</div>
-<!-- SCRIPT DE PAGO PARA CHECKOUT -->
-<script>
-window.addEventListener('load', function() {
-    if (typeof bootstrap === 'undefined') {
-        console.error("Bootstrap no cargado");
-        return;
-    }
-    
-    // Botón que abre el modal
-    document.getElementById("btn-abrir-modal")?.addEventListener("click", function(e) {
-        e.preventDefault();
-        new bootstrap.Modal(document.getElementById("paymentModal")).show();
-    });
-    
-    // Confirmar pago
-    document.getElementById("pay-confirm-btn")?.addEventListener("click", function() {
-        const number = document.getElementById("pay-number").value.replace(/\s/g, "");
-        const name = document.getElementById("pay-name").value.trim();
-        const expiry = document.getElementById("pay-expiry").value.trim();
-        const cvv = document.getElementById("pay-cvv").value.trim();
-        const statusDiv = document.getElementById("pay-status");
-        
-        if (number.length !== 16) {
-            statusDiv.innerHTML = '<span class="text-danger">Número inválido (16 dígitos)</span>';
-            return;
-        }
-        if (name.length < 3) {
-            statusDiv.innerHTML = '<span class="text-danger">Nombre requerido</span>';
-            return;
-        }
-        if (!expiry.match(/^\d{2}\/\d{2}$/)) {
-            statusDiv.innerHTML = '<span class="text-danger">Formato MM/AA</span>';
-            return;
-        }
-        if (cvv.length !== 3) {
-            statusDiv.innerHTML = '<span class="text-danger">CVV inválido (3 dígitos)</span>';
-            return;
-        }
-        
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = "Procesando...";
-        statusDiv.innerHTML = '<span class="text-secondary">Procesando...</span>';
-        
-        setTimeout(() => {
-            if (number === "1111111111111111" || number === "2222222222222222" || number === "3333333333333333") {
-                statusDiv.innerHTML = '<span class="text-danger">Pago rechazado</span>';
-                btn.disabled = false;
-                btn.innerHTML = "CONFIRMAR PAGO";
+
+    <!-- Script de control del pago -->
+    <script>
+    (function() {
+        function init() {
+            const btnAbrirModal = document.getElementById("btn-abrir-modal");
+            const confirmBtn = document.getElementById("pay-confirm-btn");
+            const modalEl = document.getElementById("paymentModal");
+            const confirmForm = document.getElementById("confirm-form");
+            
+            if (!btnAbrirModal || !confirmBtn || !modalEl || !confirmForm) {
                 return;
             }
             
-            statusDiv.innerHTML = '<span class="text-success">¡Pago aprobado!</span>';
-            setTimeout(() => {
-                bootstrap.Modal.getInstance(document.getElementById("paymentModal"))?.hide();
-                document.getElementById("confirm-form").submit();
-            }, 1000);
-        }, 2000);
-    });
+            btnAbrirModal.addEventListener("click", function(e) {
+                e.preventDefault();
+                new bootstrap.Modal(modalEl).show();
+            });
+            
+            confirmBtn.addEventListener("click", function() {
+                const number = document.getElementById("pay-number").value.replace(/\s/g, "");
+                const name = document.getElementById("pay-name").value.trim();
+                const expiry = document.getElementById("pay-expiry").value.trim();
+                const cvv = document.getElementById("pay-cvv").value.trim();
+                const statusDiv = document.getElementById("pay-status");
+                
+                if (number.length !== 16) {
+                    statusDiv.innerHTML = '<span class="text-danger">Número inválido (16 dígitos)</span>';
+                    return;
+                }
+                if (name.length < 3) {
+                    statusDiv.innerHTML = '<span class="text-danger">Nombre requerido</span>';
+                    return;
+                }
+                if (!expiry.match(/^\d{2}\/\d{2}$/)) {
+                    statusDiv.innerHTML = '<span class="text-danger">Formato MM/AA</span>';
+                    return;
+                }
+                if (cvv.length !== 3) {
+                    statusDiv.innerHTML = '<span class="text-danger">CVV inválido (3 dígitos)</span>';
+                    return;
+                }
+                
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = "Procesando...";
+                statusDiv.innerHTML = '<span class="text-secondary">Procesando pago...</span>';
+                
+                setTimeout(function() {
+                    if (number === "1111111111111111" || number === "2222222222222222" || number === "3333333333333333") {
+                        statusDiv.innerHTML = '<span class="text-danger">Pago rechazado</span>';
+                        btn.disabled = false;
+                        btn.innerHTML = "CONFIRMAR PAGO";
+                        return;
+                    }
+                    
+                    statusDiv.innerHTML = '<span class="text-success">¡Pago aprobado!</span>';
+                    setTimeout(function() {
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        confirmForm.submit();
+                    }, 800);
+                }, 2000);
+            });
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
     
-    // Formateadores
-    document.getElementById("pay-number")?.addEventListener("input", function() {
-        this.value = this.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
+    // Formateadores de campos
+    document.addEventListener("DOMContentLoaded", function() {
+        const payNumber = document.getElementById("pay-number");
+        if (payNumber) {
+            payNumber.addEventListener("input", function() {
+                this.value = this.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
+            });
+        }
+        const payExpiry = document.getElementById("pay-expiry");
+        if (payExpiry) {
+            payExpiry.addEventListener("input", function() {
+                let val = this.value.replace(/\D/g, "");
+                if (val.length >= 2) val = val.substring(0, 2) + "/" + val.substring(2, 4);
+                this.value = val.substring(0, 5);
+            });
+        }
+        const payCvv = document.getElementById("pay-cvv");
+        if (payCvv) {
+            payCvv.addEventListener("input", function() {
+                this.value = this.value.replace(/\D/g, "").substring(0, 3);
+            });
+        }
     });
-    document.getElementById("pay-expiry")?.addEventListener("input", function() {
-        let val = this.value.replace(/\D/g, "");
-        if (val.length >= 2) val = val.substring(0, 2) + "/" + val.substring(2, 4);
-        this.value = val.substring(0, 5);
-    });
-    document.getElementById("pay-cvv")?.addEventListener("input", function() {
-        this.value = this.value.replace(/\D/g, "").substring(0, 3);
-    });
-});
-</script>
-<script>
-// Control del botón que abre el modal
-document.addEventListener("DOMContentLoaded", function() {
-    const btnAbrirModal = document.getElementById("btn-abrir-modal");
-    
-    if (btnAbrirModal) {
-        btnAbrirModal.addEventListener("click", function(e) {
-            e.preventDefault();
-            // Abrir modal de pago
-            const modal = new bootstrap.Modal(document.getElementById("paymentModal"));
-            modal.show();
-        });
-    }
-});
-</script>
-<!-- Modal de pago -->
-<div class="modal fade" id="paymentModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header" style="background-color: #009ee3; color: white;">
-        <img src="assets/img/mercado-papu.png" height="60px">
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input id="pay-number" class="form-control" placeholder="Número de tarjeta">
-        <input id="pay-name" class="form-control mt-2" placeholder="Titular">
-        <div class="row mt-2">
-          <div class="col-6"><input id="pay-expiry" class="form-control" placeholder="MM/AA"></div>
-          <div class="col-6"><input id="pay-cvv" class="form-control" placeholder="CVV"></div>
-        </div>
-        <div id="pay-status" class="mt-2 text-center"></div>
-        <button id="pay-confirm-btn" class="btn btn-primary w-100 mt-3">CONFIRMAR PAGO</button>
-      </div>
-    </div>
-  </div>
-</div>
+    </script>
 </body>
 </html>

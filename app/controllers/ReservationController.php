@@ -115,7 +115,7 @@ function handle_reservation_create(): void
         }
 
         // COMENTAR TEMPORALMENTE LA VERIFICACIÓN DE BUTACAS OCUPADAS
-        /*
+        
         try {
             $occupiedSeats = reservation_occupied_seats_for_showtime((int) $showtime['id']);
             $conflicts = reservation_selected_occupied_seats($selectedSeats, $occupiedSeats);
@@ -127,7 +127,7 @@ function handle_reservation_create(): void
             error_log($exception->getMessage());
             $errors[] = 'No se pudo validar la disponibilidad de butacas.';
         }
-        */
+       
     }
 
     if ($errors !== []) {
