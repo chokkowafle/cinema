@@ -52,7 +52,7 @@ ON DUPLICATE KEY UPDATE
     icon = VALUES(icon),
     badge = VALUES(badge),
     is_active = VALUES(is_active),
-    sort_order = VALUES(sort_order);;
+    sort_order = VALUES(sort_order);
 
 INSERT INTO coupons (code, description, checkout_type, discount_type, discount_value, is_active, starts_at, ends_at)
 VALUES

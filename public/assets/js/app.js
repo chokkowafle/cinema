@@ -314,3 +314,168 @@ document.querySelectorAll('[data-confirm-action]').forEach((button) => {
         }
     });
 });
+
+function initPaymentModal() {
+    const modalElement = document.querySelector('[data-payment-modal]');
+    const forms = Array.from(document.querySelectorAll('[data-payment-modal-form]'));
+
+    if (modalElement === null || forms.length === 0 || typeof bootstrap === 'undefined') {
+        return;
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    const confirmButton = modalElement.querySelector('[data-payment-modal-confirm]');
+    const status = modalElement.querySelector('[data-payment-modal-status]');
+    const numberInput = modalElement.querySelector('[data-payment-card-number]');
+    const nameInput = modalElement.querySelector('[data-payment-card-name]');
+    const expiryInput = modalElement.querySelector('[data-payment-card-expiry]');
+    const cvvInput = modalElement.querySelector('[data-payment-card-cvv]');
+    const inputs = [numberInput, nameInput, expiryInput, cvvInput].filter((input) => input !== null);
+    const originalButtonText = confirmButton !== null ? confirmButton.textContent.trim() : '';
+    let activeForm = null;
+
+    if (confirmButton === null || status === null || numberInput === null || nameInput === null || expiryInput === null || cvvInput === null) {
+        return;
+    }
+
+    const setStatus = (message, type = '') => {
+        status.textContent = message;
+        status.classList.toggle('is-error', type === 'error');
+        status.classList.toggle('is-success', type === 'success');
+        status.classList.toggle('is-muted', type === 'muted');
+    };
+
+    const resetModal = () => {
+        inputs.forEach((input) => {
+            input.value = '';
+        });
+        confirmButton.disabled = false;
+        confirmButton.textContent = originalButtonText;
+        setStatus('', '');
+    };
+
+    const cardNumber = () => numberInput.value.replace(/\D/g, '');
+
+    const validateExpiry = () => {
+        const match = expiryInput.value.match(/^(\d{2})\/(\d{2})$/);
+
+        if (match === null) {
+            return 'Usa formato MM/AA.';
+        }
+
+        const month = Number.parseInt(match[1], 10);
+        const year = Number.parseInt(match[2], 10) + 2000;
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        if (month < 1 || month > 12) {
+            return 'El mes debe estar entre 01 y 12.';
+        }
+
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
+            return 'La tarjeta de prueba esta vencida.';
+        }
+
+        return '';
+    };
+
+    const validatePayment = () => {
+        if (cardNumber().length !== 16) {
+            return 'Ingresa un numero de tarjeta de 16 digitos.';
+        }
+
+        if (nameInput.value.trim().length < 3) {
+            return 'Ingresa el nombre del titular.';
+        }
+
+        const expiryError = validateExpiry();
+
+        if (expiryError !== '') {
+            return expiryError;
+        }
+
+        if (cvvInput.value.replace(/\D/g, '').length !== 3) {
+            return 'Ingresa un CVV de 3 digitos.';
+        }
+
+        return '';
+    };
+
+    forms.forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (form.dataset.paymentModalConfirmed === 'true') {
+                delete form.dataset.paymentModalConfirmed;
+                return;
+            }
+
+            event.preventDefault();
+            activeForm = form;
+            resetModal();
+            modal.show();
+        });
+    });
+
+    modalElement.addEventListener('shown.bs.modal', () => {
+        numberInput.focus();
+    });
+
+    numberInput.addEventListener('input', () => {
+        numberInput.value = cardNumber().replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
+    });
+
+    expiryInput.addEventListener('input', () => {
+        const value = expiryInput.value.replace(/\D/g, '').slice(0, 4);
+        expiryInput.value = value.length > 2 ? `${value.slice(0, 2)}/${value.slice(2)}` : value;
+    });
+
+    cvvInput.addEventListener('input', () => {
+        cvvInput.value = cvvInput.value.replace(/\D/g, '').slice(0, 3);
+    });
+
+    confirmButton.addEventListener('click', () => {
+        const validationError = validatePayment();
+        const rejectedCards = {
+            1111111111111111: 'Tarjeta rechazada por el banco emisor.',
+            2222222222222222: 'Fondos insuficientes.',
+            3333333333333333: 'Tarjeta bloqueada.',
+            4444444444444444: 'Tiempo de espera agotado. Intenta nuevamente.',
+        };
+        const cleanNumber = cardNumber();
+
+        if (validationError !== '') {
+            setStatus(validationError, 'error');
+            return;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(rejectedCards, cleanNumber)) {
+            setStatus(rejectedCards[cleanNumber], 'error');
+            return;
+        }
+
+        confirmButton.disabled = true;
+        confirmButton.textContent = 'Procesando...';
+        setStatus('Validando pago simulado...', 'muted');
+
+        window.setTimeout(() => {
+            setStatus('Pago aprobado. Confirmando...', 'success');
+
+            window.setTimeout(() => {
+                if (activeForm === null) {
+                    return;
+                }
+
+                activeForm.dataset.paymentModalConfirmed = 'true';
+
+                if (typeof activeForm.requestSubmit === 'function') {
+                    activeForm.requestSubmit();
+                    return;
+                }
+
+                activeForm.submit();
+            }, 700);
+        }, 900);
+    });
+}
+
+initPaymentModal();

@@ -4331,11 +4331,15 @@ p {
 }
 
 .confiteria-card-visual {
-    background: transparent;
-    padding: 0;
-    overflow: hidden; 
-    height: 160px; 
-    position: relative; 
+    position: relative;
+    display: flex;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.24), transparent 34%),
+        linear-gradient(145deg, #f9a045 0%, #df2444 55%, #9f1830 100%);
 }
 
 .confiteria-card-label {
@@ -4357,9 +4361,17 @@ p {
 
 .confiteria-card-icon {
     display: block;
+    font-size: 4.6rem;
+    line-height: 1;
+    text-align: center;
+    text-shadow: 0 9px 18px rgba(0, 0, 0, 0.28);
+}
+
+.confiteria-card-image {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover; 
+    object-fit: cover;
     object-position: center;
     margin: 0;
 }
@@ -6898,42 +6910,187 @@ p {
     }
 }
 
-/* Estilo Mercado Pago para el Modal */
-#paymentModal .modal-content {
-    border-radius: 12px;
+.payment-modal .modal-dialog {
+    width: min(520px, calc(100% - 28px));
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.payment-modal-content {
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-radius: 8px;
+    background: #182431;
+    color: #ffffff;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
 }
 
-#paymentModal .modal-header {
-    background-color: #009ee3;
-    color: white;
-    padding: 1.5rem;
+.payment-modal-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 14px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+    background: #243746;
+    padding: 18px 20px;
 }
 
-#paymentModal .form-control {
-    border: 1px solid #e6e6e6;
+.payment-modal-header .eyebrow {
+    margin: 0 0 5px;
+    color: #ffe9ee;
+}
+
+.payment-modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: var(--font-2xl);
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.payment-modal-brand {
+    display: block;
+    width: auto;
+    height: 54px;
     border-radius: 6px;
-    padding: 12px;
-    font-size: 16px;
+    object-fit: contain;
 }
 
-#paymentModal .form-control:focus {
-    border-color: #009ee3;
-    box-shadow: 0 0 0 0.2rem rgba(0, 158, 227, 0.25);
+.payment-modal-close {
+    opacity: 0.9;
 }
 
-#paymentModal .btn-danger {
-    background-color: #009ee3;
-    border: none;
-    padding: 12px;
-    transition: background 0.3s;
+.payment-modal-body {
+    display: grid;
+    gap: 18px;
+    padding: 20px;
+    background: #182431;
 }
 
-#paymentModal .btn-danger:hover {
-    background-color: #007eb5;
+.payment-modal-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px;
+    border-left: 4px solid var(--accent);
+    background: rgba(223, 36, 68, 0.14);
 }
 
-#paymentModal .text-muted.small {
-    color: #666 !important;
-    letter-spacing: 0.5px;
+.payment-modal-total span,
+.payment-modal-field label {
+    color: rgba(255, 255, 255, 0.68);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--font-xs);
+    font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.payment-modal-total strong {
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--font-xl);
+    font-weight: 900;
+    line-height: 1;
+}
+
+.payment-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.payment-modal-field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.payment-modal-field-wide {
+    grid-column: 1 / -1;
+}
+
+.payment-modal-field input {
+    min-width: 0;
+    min-height: 46px;
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-radius: 7px;
+    background: #ffffff;
+    color: #182431;
+    font: 900 var(--font-sm) Arial, Helvetica, sans-serif;
+    letter-spacing: 0;
+    line-height: 1;
+    padding: 0 12px;
+}
+
+.payment-modal-field input:focus {
+    border-color: #ffffff;
+    outline: 3px solid rgba(255, 255, 255, 0.22);
+}
+
+.payment-modal-status {
+    min-height: 20px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.76);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--font-sm);
+    font-weight: 900;
+    line-height: 1.35;
+}
+
+.payment-modal-status.is-error {
+    color: #ffd8df;
+}
+
+.payment-modal-status.is-success {
+    color: #d8ffe5;
+}
+
+.payment-modal-status.is-muted {
+    color: rgba(255, 255, 255, 0.74);
+}
+
+.payment-modal-confirm {
+    display: inline-flex;
+    min-height: 50px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+    font: 900 var(--font-sm) Arial, Helvetica, sans-serif;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.payment-modal-confirm:hover,
+.payment-modal-confirm:focus {
+    background: var(--accent-dark);
+    outline: 0;
+}
+
+.payment-modal-confirm:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+@media (max-width: 520px) {
+    .payment-modal-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .payment-modal-brand {
+        display: none;
+    }
+
+    .payment-modal-grid {
+        grid-template-columns: 1fr;
+    }
 }

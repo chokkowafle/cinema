@@ -332,9 +332,9 @@ if ($hasReservationConfirmation) {
                                 </div>
 
                                 <div class="seat-submit-wrap" data-seat-submit-guard>
-                                   <button id="btn-reservar" class="seat-submit" type="submit" data-seat-submit>
-                                     Reservar entradas
-                                </button>
+                                    <button class="seat-submit" type="submit" data-seat-submit>
+                                        Reservar entradas
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -343,47 +343,6 @@ if ($hasReservationConfirmation) {
             </div>
         <?php endif; ?>
     </main>
-
     <script src="assets/js/app.js" defer></script>
-   <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const btnContinuar = document.getElementById("btn-continuar");
-    const formReserva = document.querySelector(".seat-form");
-    
-    if (!btnContinuar || !formReserva) {
-        console.error("No se encontraron elementos");
-        return;
-    }
-    
-    btnContinuar.addEventListener("click", function(e) {
-        e.preventDefault();
-        
-        // Validar que haya butacas seleccionadas
-        const checkboxesSeleccionados = document.querySelectorAll('[data-seat-checkbox]:checked');
-        const totalButacas = parseInt(formReserva.dataset.ticketCount || '0', 10);
-        
-        if (checkboxesSeleccionados.length !== totalButacas) {
-            alert(`Selecciona ${totalButacas} butaca${totalButacas !== 1 ? 's' : ''} antes de continuar.`);
-            return;
-        }
-        
-        // Guardar datos seleccionados en sessionStorage
-        const selectedSeats = [];
-        document.querySelectorAll('[data-seat-checkbox]:checked').forEach(cb => {
-            selectedSeats.push(cb.value);
-        });
-        
-        const showtimeId = formReserva.querySelector('[name="showtime_id"]').value;
-        const ticketCount = formReserva.dataset.ticketCount;
-        
-        sessionStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
-        sessionStorage.setItem('showtimeId', showtimeId);
-        sessionStorage.setItem('ticketCount', ticketCount);
-        
-        // Redirigir a página de confirmación
-        window.location.href = 'index.php?page=confirm_reservation';
-    });
-});
-</script>
 </body>
 </html>
